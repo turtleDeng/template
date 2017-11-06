@@ -10,22 +10,7 @@
 .. toctree::
    :maxdepth: 2
 
-   overview
-   deploy
-   install
-   quick
-   config
-   auth
-   backends
-   bridges
-   guide
-   cluster
-   design
-   cli
-   plugins
-   rest
-   tune
-   mqtt
+   changhong-install-deploy
 
 支持与联系:
 
