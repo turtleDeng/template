@@ -236,7 +236,7 @@
 
   vim kafka_2.12-1.0.0/config/server.properties
 
-  broker.id=2  #这里的数字和zookeeper配置的数字最好一致
+  broker.id=3  #这里的数字和zookeeper配置的数字最好一致
   host.name=192.168.1.103
   log.dirs=/opt/kafka/kafkalogs/
   message.max.byte=5242880
