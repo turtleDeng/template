@@ -44,6 +44,7 @@
 
 .. code-block:: properties
   
+  vim /opt/redis-master/redis.conf
   bind 192.168.1.101
 
 
@@ -59,6 +60,7 @@
 
 .. code-block:: properties
 
+  vim redis-slave/redis.conf
   bind 192.168.1.102
   slaveof 192.168.1.101 6379
 
@@ -75,6 +77,7 @@
 
 .. code-block:: properties
 
+  vim redis-sentinel/sentinel.conf
   bind 192.168.1.101
   sentinel monitor mymaster 192.168.1.101 6379 1
 
@@ -312,7 +315,7 @@
 
 .. code-block:: properties
 
-  vim /etc/emqx/plugins/emqx-changhong.conf
+  vim /etc/emqx/plugins/emqx_changhong.conf
 
   ##redis sentinel服务器地址
   changhong.redis.server = xxx.xxx.xxx.xxx:26379
@@ -383,7 +386,7 @@
   wget http://www.haproxy.org/download/1.7/src/haproxy-1.7.5.tar.gz
   tar xf haproxy-1.7.5.tar.gz
   cd haproxy-1.7.5
-  make TARGET=linux2628 PREFIX=/usr/local/haproxy
+  make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1 PREFIX=/usr/local/haproxy
   make install PREFIX=/usr/local/haproxy
   安装成功后，查看版本
   /usr/local/haproxy/sbin/haproxy -v
