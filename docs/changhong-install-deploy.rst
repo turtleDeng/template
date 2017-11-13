@@ -64,6 +64,12 @@
 
     mkdir /etc/haproxy
 
+生成emqx.pem证书:
+
+.. code-block:: properties
+
+    cat /etc/emqx/certs/cert.pem /etc/emqx/certs/key.pem > /etc/emqx/certs/emqx.pem
+
 修改配置文件:
 
 .. code-block:: properties
