@@ -1,14 +1,25 @@
-.. _deploy_ha:
 
-===========
+.. _deploy_redis:
+
+============================
+安装部署2台Redis+Sentinel集群
+============================
+
+----------
 安装部署环境
-===========
+----------
 
-1 台 Haproxy; 3 台 EMQX:
+2台物理机器:
+
+.. code-block:: properties
+  
+  节点1 192.168.1.101 centos7.3
+  节点2 192.168.1.102 centos7.3
+
+每个节点都安装Redis服务:
 
 .. code-block:: properties
 
-<<<<<<< HEAD
   cd /opt
   wget http://download.redis.io/releases/redis-4.0.2.tar.gz
   tar xzf redis-4.0.2.tar.gz
@@ -76,16 +87,11 @@
 启动redis主/从节点:
 
 .. code-block:: properties
-=======
-    Haproxy 192.168.1.100 centos7
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
-    EMQX_1 192.168.1.101 centos7
-    EMQX_2 192.168.1.102 centos7
-    EMQX_3 192.168.1.103 centos7
+  redis-server ./redis-master/redis.conf &
 
+  redis-server ./redis-slave/redis.conf &
 
-<<<<<<< HEAD
 启动sentinel:
 
 .. code-block:: properties
@@ -120,32 +126,27 @@
   节点2 192.168.1.102 centos7.3
   节点3 192.168.1.103 centos7.3
   
-=======
-安装 Haproxy 服务
-----------------
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
-编译安装HAProxy:
+每个节点都安装java环境:
 
 .. code-block:: properties
 
-    wget http://www.haproxy.org/download/1.7/src/haproxy-1.7.5.tar.gz
-    tar xf haproxy-1.7.5.tar.gz
-    cd haproxy-1.7.5
-    make TARGET=linux2628 USE_LINUX_TPROXY=1 USE_LIBCRYPT=1 USE_CRYPT_H=1 USE_ZLIB=1 USE_OPENSSL=1 USE_PCRE=1
-    make install PREFIX=/usr/local/haproxy
+  cd /opt/
+  yum install java-1.8.0
 
-安装成功后，查看版本详情:
+
+每个节点都下载 kafka:
 
 .. code-block:: properties
-    
-    /usr/local/haproxy/sbin/haproxy -vv
+
+  wget http://mirrors.hust.edu.cn/apache/kafka/1.0.0/kafka_2.12-1.0.0.tgz 
+  tar -xzf kafka_2.12-1.0.0.tgz
+
 
 ----------------
-部署 Haproxy 服务
+部署Zookeeper服务
 ----------------
 
-<<<<<<< HEAD
 每个节点都创建zookeeper数据目录:
 
 .. code-block:: properties
@@ -191,27 +192,32 @@
   echo "2" > /opt/zookeeper/zkdata/myid
 
 192.168.1.103节点执行:
-=======
-复制haproxy文件到/usr/sbin下:
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
 .. code-block:: properties
 
-    cp /usr/local/haproxy/sbin/haproxy /usr/sbin/
+  echo "3" > /opt/zookeeper/zkdata/myid
 
-复制haproxy脚本，到 `/etc/init.d` 下:
-
-.. code-block:: properties
-
-    cp ./examples/haproxy.init /etc/init.d/haproxy
-    chmod 755 /etc/init.d/haproxy
-
-
-创建系统账号:
+每个节点都启动Zookeeper服务器:
 
 .. code-block:: properties
 
-<<<<<<< HEAD
+  ./kafka_2.12-1.0.0/bin/zookeeper-server-start.sh kafka_2.12-1.0.0/config/zookeeper.properties &
+
+
+-------------
+部署Kafka服务
+-------------
+
+每个节点都创建Kafka存储目录:
+
+.. code-block:: properties
+
+  mkdir -p kafka/kafkalogs
+
+每个节点都修改kafka配置文件:
+
+.. code-block:: properties
+
   vim kafka_2.12-1.0.0/config/server.properties
 
   192.168.1.101节点配置
@@ -227,15 +233,9 @@
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
 
 192.168.1.102节点配置:
-=======
-    useradd -r haproxy
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
-创建配置文件:
-    
 .. code-block:: properties
 
-<<<<<<< HEAD
   vim kafka_2.12-1.0.0/config/server.properties
 
   broker.id=2  #这里的数字和zookeeper配置的数字最好一致
@@ -247,17 +247,13 @@
   default.replication.factor=1
   replica.fetch.max.bytes=5242880
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
-=======
-    mkdir /etc/haproxy
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
-生成emqx.pem证书:
+192.168.1.103节点配置:
 
 .. code-block:: properties
 
-    cat /etc/emqx/certs/cert.pem /etc/emqx/certs/key.pem > /etc/emqx/certs/emqx.pem
+  vim kafka_2.12-1.0.0/config/server.properties
 
-<<<<<<< HEAD
   broker.id=3  #这里的数字和zookeeper配置的数字最好一致
   host.name=192.168.1.103
   num.network.threads=9
@@ -269,153 +265,66 @@
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
 
 每个节点都启动Kafka服务:
-=======
-修改配置文件:
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
 .. code-block:: properties
 
-    vi /etc/haproxy/haproxy.cfg
+  ./kafka_2.12-1.0.0/bin/kafka-server-start.sh kafka_2.12-1.0.0/config/server.properties &
 
-    global
-        log 127.0.0.1 local3 info
-        chroot /opt/apps/haproxy
-        #user haproxy
-        #group haproxy
-        daemon
-        maxconn 1024000
+-------------------
+测试Zookeeper+Kafka
+-------------------
 
-    defaults
-        log global
-        mode tcp
-        option tcplog
-        #option dontlognull
-        timeout connect 5000
+测试集群是否成功:
 
-        # timeout > mqtt's keepalive * 1.2
-        timeout client 120s
-        timeout server 120s
-        # 'full transparent proxy' for all
-        #source 0.0.0.0 usesrc clientip
-
-    frontend emqx_tcp
-        bind *:1883
-        option tcplog
-        mode tcp
-        default_backend emqx_tcp_back
-
-    frontend emqx_ws
-        bind *:8083
-        option tcplog
-        mode tcp
-        default_backend emqx_ws_back
-
-    frontend emqx_dashboard
-        bind *:18083
-        option tcplog
-        mode tcp
-        default_backend emqx_dashboard_back
-
-    frontend emqx_api
-        bind *:8080
-        option tcplog
-        mode tcp
-        default_backend emqx_api_back
-
-    frontend emqx_ssl
-        bind *:8883 ssl crt /etc/emqx/certs/emqx.pem no-sslv3
-        option tcplog
-        mode tcp
-        default_backend emqx_ssl_back
-
-    frontend emqx_wss
-        bind *:8084 ssl crt /etc/emqx/certs/emqx.pem no-sslv3
-        option tcplog
-        mode tcp
-        default_backend emqx_wss_back
-
-    backend emqx_tcp_back
-        balance roundrobin
-        server emqx_node_1 192.168.1.101:1883 check
-        server emqx_node_2 192.168.1.102:1883 check
-        server emqx_node_3 192.168.1.103:1883 check
-
-    backend emqx_ws_back
-        balance roundrobin
-        server emqx_node_1 192.168.1.101:8083 check
-        server emqx_node_2 192.168.1.102:8083 check
-        server emqx_node_3 192.168.1.103:8083 check
-
-    backend emqx_dashboard_back
-        balance roundrobin
-        server emqx_node_1 192.168.1.101:18083 check
-        server emqx_node_2 192.168.1.102:18083 check
-        server emqx_node_3 192.168.1.103:18083 check
-
-    backend emqx_api_back
-        balance roundrobin
-        server emqx_node_1 192.168.1.101:8080 check
-        server emqx_node_2 192.168.1.102:8080 check
-        server emqx_node_3 192.168.1.103:8080 check
-
-    backend emqx_ssl_back
-        mode tcp
-        balance source
-        server emqx_node_1 192.168.1.101:1883 check inter 10000 fall 2 rise 5 weight 1
-        server emqx_node_2 192.168.1.102:1883 check inter 10000 fall 2 rise 5 weight 1
-        server emqx_node_3 192.168.1.103:1883 check inter 10000 fall 2 rise 5 weight 1
-        #source 0.0.0.0 usesrc clientip
-
-    backend emqx_wss_back
-        mode tcp
-        balance source
-        server emqx_node_1 192.168.1.101:8083 check inter 10000 fall 2 rise 5 weight 1
-        server emqx_node_2 192.168.1.102:8083 check inter 10000 fall 2 rise 5 weight 1
-        server emqx_node_3 192.168.1.103:8083 check inter 10000 fall 2 rise 5 weight 1
-        #source 0.0.0.0 usesrc clientip
-
-启动haproxy:
-    
 .. code-block:: properties
 
-    service haproxy start
+  ./kafka_2.12-1.0.0/bin/kafka-topics.sh --zookeeper 192.168.1.101:2181 --replication-factor 2 --partitions 1 --topic testTopic --create
+  ./kafka_2.12-1.0.0/bin/kafka-console-consumer.sh --zookeeper 192.168.1.102:2181 --topic testTopic --from-beginning
+  ./kafka_2.12-1.0.0/bin/kafka-console-producer.sh --broker-list 192.168.1.103:9092 --topic testTopic
+
+
+.. _deploy_emqx:
+
+=================
+安装部署3台EMQX集群
+=================
 
 ----------
-其他（可选）
+安装部署环境
 ----------
 
-开启日志记录:
-
-    参考: http://www.zhengdazhi.com/archives/1360
-
-编辑系统日志配置：
+3台物理机器:
 
 .. code-block:: properties
 
-    vim  /etc/rsyslog.d/haproxy.conf
+  节点1 192.168.1.101 centos7.3
+  节点2 192.168.1.102 centos7.3
+  节点3 192.168.1.103 centos7.3
 
-    $ModLoad imudp
-    $UDPServerRun 514
-    local3.*     /var/log/haproxy.log
-
-    # 如果不加下面的的配置则除了在 /var/log/haproxy.log 中写入日志外，也会写入message文件
-
-
-配置rsyslog的主配置文件, 开启远程日志:
+每个节点都安装emqx:
 
 .. code-block:: properties
 
-    vim /etc/sysconfig/rsyslog
-    SYSLOGD_OPTIONS=”-c 2 -r -m 0″
-    #-c 2 使用兼容模式，默认是 -c 5
-    #-r 开启远程日志
-    #-m 0 标记时间戳。单位是分钟，为0时，表示禁用该功能
+  rpm -ivh --force emqx-changhong-centos7-v2.2-1.el7.centos.x86_64.rpm
 
-配置完成后重启 haproxy 和 rsyslog 服务:
-    
+192.168.1.101节点修改配置文件:
+
 .. code-block:: properties
 
-<<<<<<< HEAD
+  vim /etc/emqx/emqx.conf
+  node.name = emqx@192.168.1.101
+
+192.168.1.102节点修改配置文件:
+
+.. code-block:: properties
+
+  vim /etc/emqx/emqx.conf
+  node.name = emqx@192.168.1.102
+
+192.168.1.103节点修改配置文件:
+
+.. code-block:: properties
+
   vim /etc/emqx/emqx.conf
   node.name = emqx@192.168.1.103
 
@@ -427,84 +336,212 @@
 
   ##redis sentinel服务器地址
   changhong.redis.server = xxx.xxx.xxx.xxx:26680
-=======
-    systemctl restart rsyslog
-    systemctl restart haproxy
->>>>>>> b2b415f752642bc70f9d0bf9ee00ffd223c48d82
 
-开启全透明代理:
+  ## sentinel监听redis master的名字
+  changhong.redis.sentinel = mymaster
 
-    参考: http://www.cnblogs.com/Bonker/p/6814183.html
 
---------------------
-配置 Haproxy 代理服务
---------------------
+  vim /etc/emqx/plugins/emqx_auth_jwt.conf
+  ## JWT的密钥
+  auth.jwt.secret = xxxxxx
 
-配置 Haproxy, 开启全透明代理:
+  vim /etc/emqx/plugins/emqx_bridge_kafka.conf
+  bridge.kafka.pool1.server = xxx.xxx.xxx.xx1:9092 xxx.xxx.xxx.xx2:9092 xxx.xxx.xxx.xx3:9092
+
+192.168.1.101节点启动emqx服务:
+
+.. code-block:: properties
+
+  service emqx start
+
+192.168.1.102节点启动emqx服务并加入EMQX集群:
 
 .. code-block:: properties
 
-    vim /etc/haproxy/haproxy.cfg
+  service emqx start
+  emqx_ctl cluster join emqx@192.168.1.101
 
-在想要开启的全透明的 backend/default 下面加上配置:
-    
-.. code-block:: properties
-    
-    source 0.0.0.0 usesrc clientip
-
-    配置 iptables
-
-    iptables -F
-    iptables -t mangle -N DIVERT
-    iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
-    iptables -t mangle -A DIVERT -j MARK --set-mark 222
-    iptables -t mangle -A DIVERT -j ACCEPT
-    ip rule add fwmark 222 lookup 100
-    ip route add local 0.0.0.0/0 dev lo table 100
-
-
-添加转发和重定向:
-    
-.. code-block:: properties
-
-    vim /etc/sysctl.conf
-
-    ##==================================================
-    ##  Haproxy 透明代理参数
-    ##==================================================
-    # 允许 IP 转发
-    net.ipv4.ip_forward = 1
-    # 设置松散逆向路径过滤
-    net.ipv4.conf.default.rp_filter = 2
-    net.ipv4.conf.all.rp_filter = 2
-    net.ipv4.conf.eth0.rp_filter = 0
-    # 允许 ICMP 重定向
-    net.ipv4.conf.all.send_redirects = 1
-    net.ipv4.conf.default.send_redirects = 1
-
-重启 Haproxy:
+192.168.1.103节点启动emqx服务并加入EMQX集群:
 
 .. code-block:: properties
-    
-    systemctl restart haproxy
 
----------------
-配置 EMQX 服务器
----------------
+  service emqx start
+  emqx_ctl cluster join emqx@192.168.1.101
 
-每台 EMQX 服务器应该将 Haproxy 代理服务器设置为它的网关，否则无法实现全透明代理:
-    
+查看emqx是否集群成功:
+
+.. code-block:: properties
+  
+  emqx_ctl cluster status
+
+
+.. _deploy_haproxy:
+
+=================================
+安装部署haproxy，实现3台emqx负载均衡
+=================================
+
+----------
+安装部署环境
+----------
+
+2台物理机器:
+
 .. code-block:: properties
 
-    vim /etc/sysconfig/network-scripts/ifcfg-eth0
+  节点1 192.168.1.101 centos7.3
+  节点2 192.168.1.102 centos7.3
 
-    # 修改 GATEWAY; DNS
-    GATEWAY=192.168.1.100
-    DNS1=192.168.1.100
+--------------
+安装HAProxy服务
+--------------
 
+编译安装HAProxy:
 
-重启网络服务:
-    
 .. code-block:: properties
 
-    systemctl restart network
+  wget http://www.haproxy.org/download/1.7/src/haproxy-1.7.5.tar.gz
+  tar xf haproxy-1.7.5.tar.gz
+  cd haproxy-1.7.5
+  make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1 PREFIX=/usr/local/haproxy
+  make install PREFIX=/usr/local/haproxy
+  安装成功后，查看版本
+  /usr/local/haproxy/sbin/haproxy -v
+
+--------------
+部署HAProxy服务
+--------------
+
+复制haproxy文件到/usr/sbin下:
+  
+.. code-block:: properties
+
+  cp /usr/local/haproxy/sbin/haproxy /usr/sbin/
+
+复制haproxy脚本，到/etc/init.d下:
+
+.. code-block:: properties
+
+  cp ./examples/haproxy.init /etc/init.d/haproxy
+  chmod 755 /etc/init.d/haproxy
+
+创建系统账号:
+
+.. code-block:: properties
+
+  useradd -r haproxy
+
+创建配置文件:
+
+.. code-block:: properties
+  
+  mkdir /etc/haproxy
+
+修改配置文件:
+
+.. code-block:: properties
+
+  vi /etc/haproxy/haproxy.cfg
+
+  global
+      log 127.0.0.1 local3 info
+      chroot /usr/local/haproxy
+      user haproxy
+      group haproxy
+      daemon
+      maxconn 1024000
+
+  defaults
+      log global
+      mode tcp
+      option httplog
+      option dontlognull
+      timeout connect 5000
+      timeout client 50000
+      timeout server 50000
+
+  frontend emqx_tcp
+      bind *:1883
+      option tcplog
+      mode tcp
+      default_backend emqx_tcp_back
+
+  frontend emqx_ws
+      bind *:8083
+      option tcplog
+      mode tcp
+      default_backend emqx_ws_back
+
+  frontend emqx_dashboard
+      bind *:18083
+      option tcplog
+      mode tcp
+      default_backend emqx_dashboard_back
+
+  frontend emqx_api
+      bind *:8080
+      option tcplog
+      mode tcp
+      default_backend emqx_api_back
+
+  frontend emqx_ssl
+      bind *:8883 ssl crt /etc/emqx/certs/emqx.pem no-sslv3
+      option tcplog
+      mode tcp
+      default_backend emqx_ssl_back
+
+  frontend emqx_wss
+      bind *:8084 ssl crt /etc/emqx/certs/emqx.pem no-sslv3
+      option tcplog
+      mode tcp
+      default_backend emqx_wss_back
+
+  backend emqx_tcp_back
+      balance roundrobin
+      server emqx_node_1 192.168.1.101:1883 check
+      server emqx_node_2 192.168.1.102:1883 check
+      server emqx_node_3 192.168.1.103:1883 check
+
+  backend emqx_ws_back
+      balance roundrobin
+      server emqx_node_1 192.168.1.101:8083 check
+      server emqx_node_2 192.168.1.102:8083 check
+      server emqx_node_3 192.168.1.103:8083 check
+
+  backend emqx_dashboard_back
+      balance roundrobin
+      server emqx_node_1 192.168.1.101:18083 check
+      server emqx_node_2 192.168.1.102:18083 check
+      server emqx_node_3 192.168.1.103:18083 check
+
+  backend emqx_api_back
+      balance roundrobin
+      server emqx_node_1 192.168.1.101:8080 check
+      server emqx_node_2 192.168.1.102:8080 check
+      server emqx_node_3 192.168.1.103:8080 check
+
+  backend emqx_ssl_back
+      mode tcp
+      balance source
+      timeout server 50s
+      timeout check 5000
+      server emqx_node_1 192.168.1.101:1883 check inter 10000 fall 2 rise 5 weight 1
+      server emqx_node_2 192.168.1.101:1883 check inter 10000 fall 2 rise 5 weight 1
+      server emqx_node_3 192.168.1.101:1883 check inter 10000 fall 2 rise 5 weight 1
+      source 0.0.0.0 usesrc clientip
+
+  backend emqx_wss_back
+      mode tcp
+      balance source
+      timeout server 50s
+      timeout check 5000
+      server emqx_node_1 192.168.1.101:8083 check inter 10000 fall 2 rise 5 weight 1
+      server emqx_node_2 192.168.1.101:8083 check inter 10000 fall 2 rise 5 weight 1
+      server emqx_node_3 192.168.1.101:8083 check inter 10000 fall 2 rise 5 weight 1
+      source 0.0.0.0 usesrc clientip
+
+启动haproxy:
+
+.. code-block:: properties
+
+  service haproxy start
