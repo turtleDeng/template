@@ -52,7 +52,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'HAProxy安装部署说明书'
+project = u'长虹物联网平台消息系统安装部署说明书'
 copyright = u'2016-2017, 杭州映云科技有限公司'
 author = u'<contact@emqtt.io>'
 
@@ -253,7 +253,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'EMQX.tex', u'HAProxy安装部署说明书',
+    (master_doc, 'EMQX.tex', u'长虹物联网平台消息系统安装部署说明书',
      u'\\textless{}contact@emqtt.io\\textgreater{}', 'manual'),
 ]
 
@@ -282,7 +282,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'emqx', u'HAProxy安装部署说明书',
+    (master_doc, 'emqx', u'长虹物联网平台消息系统安装部署说明书',
      [author], 1)
 ]
 
@@ -296,8 +296,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'EMQX', u'HAProxy安装部署说明书',
-     author, 'EMQX', 'HAProxy安装部署说明书',
+    (master_doc, 'EMQX', u'长虹物联网平台消息系统安装部署说明书',
+     author, 'EMQX', '长虹物联网平台消息系统安装部署说明书',
      'Miscellaneous'),
 ]
 
@@ -316,7 +316,7 @@ texinfo_documents = [
 # -- Options for Epub output ----------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'HAProxy安装部署说明书'
+epub_title = u'长虹物联网平台消息系统安装部署说明书'
 epub_author = u'<contact@emqtt.io>'
 epub_publisher = u'<contact@emqtt.io>'
 epub_copyright = u'2016-2017,杭州映云科技有限公司'
