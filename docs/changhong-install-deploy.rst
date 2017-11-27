@@ -46,6 +46,7 @@
   
   vim /opt/redis-master/redis.conf
   bind 192.168.1.101
+  port 6680
 
 
 192.168.1.102节点创建从redis:
@@ -62,7 +63,8 @@
 
   vim redis-slave/redis.conf
   bind 192.168.1.102
-  slaveof 192.168.1.101 6379
+  port 6680
+  slaveof 192.168.1.101 6680
 
 
 192.168.1.101创建sentinel节点:
@@ -79,7 +81,8 @@
 
   vim redis-sentinel/sentinel.conf
   bind 192.168.1.101
-  sentinel monitor mymaster 192.168.1.101 6379 1
+  port 26680
+  sentinel monitor mymaster 192.168.1.101 6680 1
 
 启动redis主/从节点:
 
@@ -100,7 +103,7 @@
 
 .. code-block:: properties
 
-  redis-cli -h 192.168.1.101 -p 26379
+  redis-cli -h 192.168.1.101 -p 26680
   sentinel get-master-addr-by-name mymaster
 
 
@@ -149,6 +152,14 @@
 .. code-block:: properties
 
   mkdir -p zookeeper/zkdata zookeeper/zkdatalog
+
+优化JVM虚拟机参数:
+
+.. code-block:: properties
+
+  vim kafka_2.12-1.0.0/bin/kafka-server-start.sh
+
+  export KAFKA_HEAP_OPTS="-Xmx2G -Xms2G"
 
 每个节点都修改zookeeper配置:
 
@@ -213,9 +224,11 @@
 
   broker.id=1  #这里的数字和zookeeper配置的数字最好一致
   host.name=192.168.1.101
+  num.network.threads=9
+  num.io.threads=16
   log.dirs=/opt/kafka/kafkalogs/
   message.max.byte=5242880
-  default.replication.factor=2
+  default.replication.factor=1
   replica.fetch.max.bytes=5242880
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
 
@@ -227,9 +240,11 @@
 
   broker.id=2  #这里的数字和zookeeper配置的数字最好一致
   host.name=192.168.1.102
+  num.network.threads=9
+  num.io.threads=16
   log.dirs=/opt/kafka/kafkalogs/
   message.max.byte=5242880
-  default.replication.factor=2
+  default.replication.factor=1
   replica.fetch.max.bytes=5242880
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
 
@@ -241,9 +256,11 @@
 
   broker.id=3  #这里的数字和zookeeper配置的数字最好一致
   host.name=192.168.1.103
+  num.network.threads=9
+  num.io.threads=16
   log.dirs=/opt/kafka/kafkalogs/
   message.max.byte=5242880
-  default.replication.factor=2
+  default.replication.factor=1
   replica.fetch.max.bytes=5242880
   zookeeper.connect=192.168.1.101:2181,192.168.1.102:2181,192.168.1.103:2181
 
@@ -318,7 +335,7 @@
   vim /etc/emqx/plugins/emqx_changhong.conf
 
   ##redis sentinel服务器地址
-  changhong.redis.server = xxx.xxx.xxx.xxx:26379
+  changhong.redis.server = xxx.xxx.xxx.xxx:26680
 
   ## sentinel监听redis master的名字
   changhong.redis.sentinel = mymaster
