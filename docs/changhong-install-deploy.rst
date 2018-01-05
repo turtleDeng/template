@@ -278,7 +278,7 @@
 
 .. code-block:: properties
 
-  ./kafka_2.12-1.0.0/bin/kafka-topics.sh --zookeeper 192.168.1.101:2181 --replication-factor 2 --partitions 1 --topic testTopic --create
+  ./kafka_2.12-1.0.0/bin/kafka-topics.sh --zookeeper 192.168.1.101:2181 --replication-factor 1 --partitions 1 --topic testTopic --create
   ./kafka_2.12-1.0.0/bin/kafka-console-consumer.sh --zookeeper 192.168.1.102:2181 --topic testTopic --from-beginning
   ./kafka_2.12-1.0.0/bin/kafka-console-producer.sh --broker-list 192.168.1.103:9092 --topic testTopic
 
