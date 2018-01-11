@@ -25,7 +25,7 @@
   tar xzf redis-4.0.2.tar.gz
   cd redis-4.0.2
   yum install gcc
-  make MALLOC=libc
+  make
   make install
 
 
